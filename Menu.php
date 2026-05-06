@@ -1,157 +1,144 @@
-<?php
-$menu = [
-    "T1" => [
-        "name" => "Classic Tapsilog", 
-        "price" => 120, 
-        "img" => "https://www.bonappetit.com/recipe/tapsilog",
-        "desc" => "Ang paboritong Beef Tapa na may saktong alat at tamis, served with garlic rice at fried egg."
-    ],
-    "T2" => [
-        "name" => "Sweet Tocilog", 
-        "price" => 110, 
-        "img" => "https://purposefoods.ph/products/pork-tocilog",
-        "desc" => "Malambot at manamis-namis na Pork Tocino. Perfect pampagana sa umaga!"
-    ],
-    "T3" => [
-        "name" => "Garlic Longsilog", 
-        "price" => 100, 
-        "img" => "https://www.tasteatlas.com/longsilog",
-        "desc" => "Authentic garlic longganisa. Malinamnam at siksik sa lasa."
-    ],
-    "T4" => [
-        "name" => "Crispy Bangsilog", 
-        "price" => 130, 
-        "img" => "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400&h=300&fit=crop",
-        "desc" => "Daing na Bangus na pinirito hanggang maging crispy. Served with vinegar dip."
-    ],
-    "T5" => [
-        "name" => "Fried Chicksilog", 
-        "price" => 115, 
-        "img" => "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=400&h=300&fit=crop",
-        "desc" => "Juicy fried chicken leg quarter na may malutong na balat."
-    ]
-];
-
-$orderSummary = "";
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $service = $_POST['service'];
-    $itemCode = $_POST['item_code'];
-    $quantity = (int)$_POST['quantity'];
-
-    if (isset($menu[$itemCode]) && $quantity > 0) {
-        $itemName = $menu[$itemCode]['name'];
-        $totalPrice = $menu[$itemCode]['price'] * $quantity;
-        $orderSummary = "
-            <div class='receipt-container bounce-in'>
-                <h3>Order Placed!</h3>
-                <p>Item: $itemName | Qty: $quantity</p>
-                <div class='total'>Total: ₱" . number_format($totalPrice, 2) . "</div>
-            </div>";
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Silog Express | Interactive Menu</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --accent: #ff7e5f; --gradient: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%); --dark: #2d3436; }
-        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; margin: 0; padding: 0; }
-        .header { background: var(--gradient); padding: 40px 20px; color: white; text-align: center; border-radius: 0 0 30px 30px; }
-        .container { max-width: 800px; margin: -30px auto 50px; padding: 0 20px; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; margin: 0; padding: 0; color: var(--dark); }
+        .header { background: var(--gradient); padding: 40px 20px; color: white; text-align: center; border-radius: 0 0 30px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .container { max-width: 850px; margin: -30px auto 50px; padding: 0 20px; }
         
+        /* Menu Grid */
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .food-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; }
-        .food-card:hover { transform: translateY(-5px); }
+        .food-card { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; border: 1px solid transparent; }
+        .food-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 15px 30px rgba(255,126,95,0.15); }
         .food-card img { width: 100%; height: 160px; object-fit: cover; }
         .food-info { padding: 15px; }
-        .food-info h4 { margin: 0; font-size: 1rem; color: var(--dark); }
-        .price { color: var(--accent); font-weight: 700; margin-top: 5px; }
+        .food-info h4 { margin: 0; font-size: 1rem; }
+        .price-tag { color: var(--accent); font-weight: 700; font-size: 1.1rem; margin-top: 5px; }
 
-        /* MODAL STYLES */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
-        .modal-content { background: white; margin: 10% auto; padding: 25px; width: 80%; max-width: 400px; border-radius: 20px; text-align: center; position: relative; animation: slideDown 0.3s ease-out; }
-        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .close-btn { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #aaa; }
-        .modal-img { width: 100%; height: 200px; object-fit: cover; border-radius: 15px; margin-bottom: 15px; }
-        
+        /* Modal */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
+        .modal-content { background: white; margin: 10% auto; padding: 0; width: 90%; max-width: 400px; border-radius: 25px; overflow: hidden; position: relative; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .close-btn { position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; color: white; text-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 10; }
+        .modal-img { width: 100%; height: 250px; object-fit: cover; }
+        .modal-text { padding: 25px; text-align: center; }
+
+        /* Form */
         .order-card { background: white; padding: 30px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
-        .input-group { margin-bottom: 15px; }
-        select, input { width: 100%; padding: 12px; border: 2px solid #edf2f7; border-radius: 10px; box-sizing: border-box; }
-        .btn-order { background: var(--gradient); color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        .receipt-container { margin-top: 20px; background: var(--dark); color: white; padding: 20px; border-radius: 15px; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; color: #636e72; }
+        select, input { width: 100%; padding: 14px; border: 2px solid #edf2f7; border-radius: 12px; font-family: inherit; font-size: 0.95rem; box-sizing: border-box; }
+        .btn-order { background: var(--gradient); color: white; border: none; padding: 16px; width: 100%; border-radius: 15px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: 0.3s; box-shadow: 0 8px 15px rgba(255,126,95,0.2); }
+        .btn-order:hover { transform: scale(1.02); filter: brightness(1.1); }
+
+        /* Receipt */
+        #receiptSection { display: none; margin-top: 30px; background: var(--dark); color: white; border-radius: 20px; padding: 25px; text-align: center; }
+        .bounce-in { animation: bounceIn 0.5s ease; }
+        @keyframes bounceIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>🍳 Silog Express</h1>
-        <p>Click the food for more details!</p>
+        <p>Premium Filipino Breakfast Menu</p>
     </div>
 
     <div class="container">
-        <div class="menu-grid">
-            <?php foreach ($menu as $code => $item): ?>
-            <!-- Dinagdagan ng onclick function -->
-            <div class="food-card" onclick="showDetails('<?= $item['name'] ?>', '<?= $item['desc'] ?>', '<?= $item['img'] ?>', '<?= $item['price'] ?>')">
-                <img src="<?= $item['img'] ?>" alt="<?= $item['name'] ?>" onerror="this.src='https://via.placeholder.com/300x200'">
-                <div class="food-info">
-                    <h4><?= $item['name'] ?></h4>
-                    <p class="price">₱<?= $item['price'] ?></p>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
+        <h3 style="margin: 40px 0 20px;">Our Specials (Click for details)</h3>
+        
+        <div class="menu-grid" id="menuGrid"></div>
 
-        <!-- ORDER FORM -->
         <div class="order-card">
-            <form method="POST">
+            <h3 style="margin-top:0">Place Your Order</h3>
+            <form id="orderForm">
                 <div class="input-group">
-                    <label>Module / Service</label>
-                    <select name="service">
-                        <option value="Dine-in">Dine-in</option>
-                        <option value="Take-out">Take-out</option>
+                    <label>How will you eat?</label>
+                    <select id="service">
+                        <option value="Dine-in">🍽 Dine-in</option>
+                        <option value="Take-out">🥡 Take-out</option>
+                        <option value="Delivery">🛵 Delivery</option>
                     </select>
                 </div>
-                <div class="input-group">
-                    <label>Select Order</label>
-                    <select name="item_code">
-                        <?php foreach ($menu as $code => $item): ?>
-                            <option value="<?= $code ?>"><?= $item['name'] ?></option>
-                        <?php endforeach; ?>
-                    </select>
+
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <div class="input-group" style="flex: 2; min-width: 200px;">
+                        <label>Select Silog</label>
+                        <select id="itemCode"></select>
+                    </div>
+                    <div class="input-group" style="flex: 1; min-width: 100px;">
+                        <label>Quantity</label>
+                        <input type="number" id="quantity" min="1" value="1">
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>Quantity</label>
-                    <input type="number" name="quantity" min="1" value="1">
-                </div>
-                <button type="submit" class="btn-order">PLACE ORDER</button>
+
+                <button type="submit" class="btn-order">CHECKOUT NOW</button>
             </form>
         </div>
 
-        <?= $orderSummary ?>
+        <div id="receiptSection" class="bounce-in"></div>
     </div>
 
-    <!-- MODAL STRUCTURE -->
     <div id="foodModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
-            <img id="m-img" class="modal-img" src="">
-            <h2 id="m-name" style="margin: 0 0 10px 0;"></h2>
-            <p id="m-desc" style="color: #636e72; font-size: 0.9rem; line-height: 1.5;"></p>
-            <h3 id="m-price" style="color: var(--accent);"></h3>
+            <img id="modal-img" class="modal-img" src="">
+            <div class="modal-text">
+                <h2 id="modal-name" style="margin: 0 0 10px 0;"></h2>
+                <p id="modal-desc" style="color: #636e72; font-size: 0.95rem; line-height: 1.6;"></p>
+                <h3 id="modal-price" style="color: var(--accent); margin-top: 15px;"></h3>
+            </div>
         </div>
     </div>
 
     <script>
-        function showDetails(name, desc, img, price) {
-            document.getElementById('m-name').innerText = name;
-            document.getElementById('m-desc').innerText = desc;
-            document.getElementById('m-img').src = img;
-            document.getElementById('m-price').innerText = "₱" + price;
+        // Data na dating nasa PHP, nasa JavaScript Object na ngayon
+        const menuData = {
+            "T1": { name: "Classic Tapsilog", price: 120, img: "tapsilog.jpg", desc: "Ang paboritong Beef Tapa na may saktong alat at tamis." }, //
+            "T2": { name: "Sweet Tocilog", price: 110, img: "tosilog.jpg", desc: "Malambot at manamis-namis na Pork Tocino." }, //
+            "T3": { name: "Garlic Longsilog", price: 100, img: "longsilog.jpg", desc: "Authentic garlic longganisa. Malinamnam at siksik sa lasa." }, //
+            "T4": { name: "Crispy Bangsilog", price: 130, img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=400&h=300&fit=crop", desc: "Daing na Bangus na pinirito hanggang maging crispy." },
+            "T5": { name: "Fried Chicksilog", price: 115, img: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=400&h=300&fit=crop", desc: "Juicy fried chicken leg quarter na may malutong na balat." }
+        };
+
+        // Render Menu Cards and Select Options
+        const menuGrid = document.getElementById('menuGrid');
+        const itemSelect = document.getElementById('itemCode');
+
+        Object.keys(menuData).forEach(code => {
+            const item = menuData[code];
+
+            // Add to Grid
+            const card = document.createElement('div');
+            card.className = 'food-card';
+            card.onclick = () => openDetails(item.name, item.desc, item.img, item.price);
+            card.innerHTML = `
+                <img src="${item.img}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/300x200?text=Food+Photo'">
+                <div class="food-info">
+                    <h4>${item.name}</h4>
+                    <div class="price-tag">₱${item.price}</div>
+                </div>
+            `;
+            menuGrid.appendChild(card);
+
+            // Add to Dropdown
+            const option = document.createElement('option');
+            option.value = code;
+            option.innerText = `${item.name} - ₱${item.price}`;
+            itemSelect.appendChild(option);
+        });
+
+        // Modal Functions
+        function openDetails(name, desc, img, price) {
+            document.getElementById('modal-name').innerText = name;
+            document.getElementById('modal-desc').innerText = desc;
+            document.getElementById('modal-img').src = img;
+            document.getElementById('modal-price').innerText = "₱" + price;
             document.getElementById('foodModal').style.display = "block";
         }
 
@@ -159,50 +146,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             document.getElementById('foodModal').style.display = "none";
         }
 
-        // Close modal if clicked outside the content
-        window.onclick = function(event) {
-            let modal = document.getElementById('foodModal');
-            if (event.target == modal) { modal.style.display = "none"; }
-        }
-    </script>
+        // Order Handling
+        document.getElementById('orderForm').onsubmit = function(e) {
+            e.preventDefault();
+            const service = document.getElementById('service').value;
+            const code = document.getElementById('itemCode').value;
+            const qty = document.getElementById('quantity').value;
+            const item = menuData[code];
+            const total = item.price * qty;
 
-<!-- Code injected by live-server -->
-<script>
-	// <![CDATA[  <-- For SVG support
-	if ('WebSocket' in window) {
-		(function () {
-			function refreshCSS() {
-				var sheets = [].slice.call(document.getElementsByTagName("link"));
-				var head = document.getElementsByTagName("head")[0];
-				for (var i = 0; i < sheets.length; ++i) {
-					var elem = sheets[i];
-					var parent = elem.parentElement || head;
-					parent.removeChild(elem);
-					var rel = elem.rel;
-					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
-						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
-					}
-					parent.appendChild(elem);
-				}
-			}
-			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-			var address = protocol + window.location.host + window.location.pathname + '/ws';
-			var socket = new WebSocket(address);
-			socket.onmessage = function (msg) {
-				if (msg.data == 'reload') window.location.reload();
-				else if (msg.data == 'refreshcss') refreshCSS();
-			};
-			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
-				console.log('Live reload enabled.');
-				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
-			}
-		})();
-	}
-	else {
-		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
-	}
-	// ]]>
-</script>
+            const receipt = document.getElementById('receiptSection');
+            receipt.style.display = "block";
+            receipt.innerHTML = `
+                <h3 style='margin-top:0; color:#feb47b;'>Order Confirmed!</h3>
+                <p>Service: <strong>${service}</strong></p>
+                <p>Item: <strong>${item.name}</strong></p>
+                <p>Qty: <strong>${qty}</strong></p>
+                <div style='font-size:1.5rem; margin-top:10px; border-top:1px dashed #555; padding-top:10px;'>
+                    Total: ₱${total.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                </div>
+            `;
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        };
+
+        window.onclick = (e) => { if (e.target == document.getElementById('foodModal')) closeModal(); }
+    </script>
 </body>
 </html>
